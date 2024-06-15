@@ -44,7 +44,7 @@ console.log(response)
         if (response?.data?.type === 1) {
           navigate("/admin/setup");
         } else if (response?.data?.type === 2) {
-          navigate("/trainer/dashboard");
+          navigate("/trainer/games-play");
         }
       } else {
         setIsLoading(false);

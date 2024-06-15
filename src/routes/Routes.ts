@@ -1,11 +1,12 @@
 // routes/Routes.js
-import AdminPage from "../pages/admin/AdminPage";
 import Test from "../pages/admin/Test";
 import AdminSetup from "../pages/admin/admin-setup/AdminSetup";
-import TestTrainer from "../pages/trainer/TestTrainer";
-import TrainerPage from "../pages/trainer/TrainerPage";
 import AdminProtectedRoute from "./AdminProtectedRoute";
 import TrainerProtectedRoute from "./TrainerProtectedRoute";
+import ArchivesList from "../pages/trainer/game-play/archives/ArchivesList";
+import GamesList from "../pages/trainer/game-play/games-list/GamesList";
+import OnGoingList from "../pages/trainer/game-play/ongoing-list/OnGoingList";
+import TrainerGamePlay from "../pages/trainer/game-play/TrainerGamePlayer";
 
 const routes = [
   {
@@ -18,15 +19,25 @@ const routes = [
     component: Test,
     protectedRoute: AdminProtectedRoute,
   },
-
+  
+  
   {
-    path: "/trainer/dashboard",
-    component: TrainerPage,
+    path: "/trainer/games-play",
+    component: TrainerGamePlay,
+    protectedRoute: TrainerProtectedRoute,
+  },{
+    path: "/trainer/games-list",
+    component: GamesList,
     protectedRoute: TrainerProtectedRoute,
   },
   {
-    path: "/trainer/test-t",
-    component: TestTrainer,
+    path: "/trainer/ongoing-list",
+    component: OnGoingList,
+    protectedRoute: TrainerProtectedRoute,
+  },
+  {
+    path: "/trainer/archives",
+    component: ArchivesList,
     protectedRoute: TrainerProtectedRoute,
   },
 ];
