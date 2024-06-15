@@ -8,8 +8,7 @@ const TrainerSidebar = () => {
   const location = useLocation();
 
   const menuItems = [
-    { path: "/trainer/dashboard", label: "Trainer Dashboard" },
-    { path: "/trainer/test-t", label: "Training Schedule" },
+    { path: "/trainer/games-play", label: "Games Play" },
 
     // Add more trainer-specific links here
   ];

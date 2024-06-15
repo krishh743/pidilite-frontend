@@ -502,21 +502,54 @@ const GamesList = ({ setWindow, window }: any) => {
     }
   };
 
+  // const handleSelectImage = async (imageFile: any, field: string) => {
+  //   const encodedFilePath = await uploadImage(imageFile);
+  //   console.log("uploadSiteBannerData", encodedFilePath);
+
+  //   if (encodedFilePath) {
+  //     if (field.includes(".")) {
+  //       const [parent, child] = field.split(".");
+
+  //       setOpenedGame((prevState) => ({
+  //         ...prevState,
+  //         [parent]: {
+  //           ...prevState[parent as keyof gameOverview],
+  //           [child]: encodedFilePath,
+  //         },
+  //       }));
+  //     } else {
+  //       setOpenedGame((prevState) => ({
+  //         ...prevState,
+  //         [field as keyof gameOverview]: encodedFilePath,
+  //       }));
+  //     }
+  //   }
+  // };
   const handleSelectImage = async (imageFile: any, field: string) => {
     const encodedFilePath = await uploadImage(imageFile);
     console.log("uploadSiteBannerData", encodedFilePath);
-
+  
     if (encodedFilePath) {
       if (field.includes(".")) {
         const [parent, child] = field.split(".");
-
-        setOpenedGame((prevState) => ({
-          ...prevState,
-          [parent]: {
-            ...prevState[parent as keyof gameOverview],
-            [child]: encodedFilePath,
-          },
-        }));
+  
+        // Check if parent is an object before spreading
+        setOpenedGame((prevState) => {
+          const parentValue = prevState[parent as keyof gameOverview];
+          
+          // Ensure parentValue is an object
+          if (typeof parentValue === 'object' && parentValue !== null) {
+            return {
+              ...prevState,
+              [parent]: {
+                ...parentValue,
+                [child]: encodedFilePath,
+              },
+            };
+          }
+  
+          return prevState; // Or handle the error case accordingly
+        });
       } else {
         setOpenedGame((prevState) => ({
           ...prevState,
@@ -525,6 +558,7 @@ const GamesList = ({ setWindow, window }: any) => {
       }
     }
   };
+  
 
   function runAfterImageDelete(file: any) {
     console.log({ file });
