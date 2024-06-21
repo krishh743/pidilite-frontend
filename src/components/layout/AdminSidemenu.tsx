@@ -9,10 +9,10 @@ const AdminSidebar = () => {
 
   const menuItems = [
     { path: "/admin/add-user", icon: "", label: "Add User" },
-    { path: "/admin/training-games", icon: "", label: "Training Games" },
+    // { path: "/admin/training-games", icon: "", label: "Training Games" },
     { path: "/admin/setup", icon: "", label: "setup" },
-    { path: "/admin/game-play", icon: "", label: "Game Play" },
-    { path: "/admin/players-leaderboard", icon: "", label: "Players & Leaderboard" },
+    { path: "/admin/live-games", icon: "", label: "Live Games" },
+    // { path: "/admin/players-leaderboard", icon: "", label: "Players & Leaderboard" },
 
     
 

@@ -25,7 +25,7 @@ const TabSwitcher: React.FC<TabSwitcherProps> = ({
             className={`py-2 px-4 focus:outline-none ${
               activeTab === tab.id
                 ? ' text-primary font-bold'
-                : 'border-b-0  text-[#C3C3C3] hover:text-tertiary-black-color'
+                : 'border-b-0  text-[#5f5b5b] hover:text-tertiary-black-color'
             }`}
             onClick={() => onTabChange(tab.id)}
           >

@@ -1,15 +1,16 @@
 import React, { useState } from 'react';
 import TabSwitcher from '../../../components/Tabs-Switcher';
-import ActiveVariation from './active-variation/ActiveVariation';
-import ArchivedVariation from './archived-variation/ArchivedVariation';
+import AddusersPage from './AddUserPage/AddusersPage';
+import UserArchived from './archived/UserArchived';
 
 
-const AdminSetup = () => {
+
+const AddUsers = () => {
   const [activeTab, setActiveTab] = useState(1);
 
   const tabs = [
-    { id: 1, label: 'Active Variation' },
-    { id: 2, label: "Archived Variation" },
+    { id: 1, label: ' Add User' },
+    { id: 2, label: "Archived" },
 
   ];
 
@@ -25,12 +26,12 @@ const AdminSetup = () => {
           activeTab={activeTab}
           onTabChange={handleTabChange}
         />
-        {activeTab === 1 && <ActiveVariation />}
-        {activeTab === 2 && <ArchivedVariation/>}
+        {activeTab === 1 && <AddusersPage />}
+        {activeTab === 2 && <UserArchived/>}
 
       </div>
     </div>
   );
 };
 
-export default AdminSetup;
+export default AddUsers;

@@ -15,7 +15,7 @@ interface gameOverview {
   };
 }
 
-const Archives = ({ setWindow, window }: any) => {
+const CompletedGames = ({ setWindow, window }: any) => {
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -409,4 +409,4 @@ const Archives = ({ setWindow, window }: any) => {
   );
 };
 
-export default Archives;
+export default CompletedGames;

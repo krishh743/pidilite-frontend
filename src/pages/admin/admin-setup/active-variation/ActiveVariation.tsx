@@ -38,7 +38,7 @@ interface gameOverview {
   };
 }
 
-const GamesList = ({ setWindow, window }: any) => {
+const ActiveVariation = ({ setWindow, window }: any) => {
   const location = useLocation();
 
   const baseUri = process.env.REACT_APP_BASE_URL;
@@ -1549,4 +1549,4 @@ const GamesList = ({ setWindow, window }: any) => {
   );
 };
 
-export default GamesList;
+export default ActiveVariation;
