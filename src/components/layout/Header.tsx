@@ -29,8 +29,8 @@ const CustomHeader = () => {
       className={`${"justify-between"} z-40 flex items-center flex-row`}
     >
       <div className="flex flex-row items-center justify-center gap-4">
-        <img src={irm} alt="" className="irm" />
-        <img src={logo} alt="" className="logo" />
+        <img src={irm} alt="" className="irm h-12" />
+        <img src={logo} alt="" className="logo h-12" />
       </div>
 
       <Button onClick={handleLogout}>Logout</Button>
