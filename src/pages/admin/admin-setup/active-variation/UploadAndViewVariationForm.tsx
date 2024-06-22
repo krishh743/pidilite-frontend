@@ -1,43 +1,72 @@
-import { Button } from "antd";
-import React from "react";
-import ImageUploader from "react-image-upload";
+import React, { useState } from "react";
+import { PlusOutlined } from "@ant-design/icons";
+import { Image, Upload } from "antd";
+import type { GetProp, UploadFile, UploadProps } from "antd";
 
-function UploadAndViewVariationForm({ openedGame, handleSelectImage, handlePreviewImage }:any) {
+type FileType = Parameters<GetProp<UploadProps, "beforeUpload">>[0];
+
+const getBase64 = (file: FileType): Promise<string> =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result as string);
+    reader.onerror = (error) => reject(error);
+  });
+
+const UploadAndViewVariationForm: React.FC = () => {
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewImage, setPreviewImage] = useState("");
+  const [fileList, setFileList] = useState<UploadFile[]>([]);
+
+  const handlePreview = async (file: UploadFile) => {
+    if (!file.url && !file.preview) {
+      file.preview = await getBase64(file.originFileObj as FileType);
+    }
+
+    setPreviewImage(file.url || (file.preview as string));
+    setPreviewOpen(true);
+  };
+
+  const handleChange: UploadProps["onChange"] = ({ fileList: newFileList }) =>
+    setFileList(newFileList);
+
+  const uploadButton = (
+    <button style={{ border: 0, background: "none" }} type="button">
+      <PlusOutlined />
+      <div style={{ marginTop: 8 }}>Upload</div>
+    </button>
+  );
   return (
-    <div className="">
-      <div className="SiteBannerContainer">
-        <span className="">
-          Add Site Banner
-          <br />
-          (1280 px by 150 px)
-        </span>
-        <div className="SiteBannerContainerBtns">
-          <button className="uploadBtn">
-            <ImageUploader
-              style={{
-                height: 29,
-                width: 156,
-                background: "##F9F7F7",
+    <>
+      <div className="flex justify-between items-center ">
+        <div>
+          <span className="">Add Site Banner (1280 px by 150 px)</span>
+        </div>
+        <div>
+          <Upload
+            action="https://660d2bd96ddfa2943b33731c.mockapi.io/api/upload"
+            listType="picture-circle"
+            fileList={fileList}
+            onPreview={handlePreview}
+            onChange={handleChange}
+          >
+            {fileList.length >= 1 ? null : uploadButton}
+          </Upload>
+          {previewImage && (
+            <Image
+              wrapperStyle={{ display: "none" }}
+              preview={{
+                visible: previewOpen,
+                onVisibleChange: (visible) => setPreviewOpen(visible),
+                afterOpenChange: (visible) => !visible && setPreviewImage(""),
               }}
-              uploadIcon="Upload"
-              deleteIcon=""
-              onFileAdded={(img) => handleSelectImage(img, "siteBanner")}
+              src={previewImage}
             />
-          </button>
-          <div className="PreviewAndDeleteBtns">
-            <Button
-              className={`previewBtn ${
-                openedGame?.siteBanner !== "" ? "previewBtnActive" : ""
-              }`}
-              onClick={() => handlePreviewImage(openedGame?.siteBanner)}
-            >
-              Preview
-            </Button>
-          </div>
+          )}
         </div>
       </div>
-    </div>
+    </>
   );
-}
+};
 
 export default UploadAndViewVariationForm;

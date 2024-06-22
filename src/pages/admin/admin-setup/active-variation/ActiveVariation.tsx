@@ -8,18 +8,46 @@ import { GetGamesListAPi } from "../../../../services/ApiServices";
 import UploadAndViewVariationForm from "./UploadAndViewVariationForm";
 import { Form, Input, Select, Upload, Row, Col } from "antd";
 import { UploadOutlined, EyeOutlined } from "@ant-design/icons";
+import KbcQuestionFromUpload from "./KbcQuestionFromUpload";
+
+interface gameOverview {
+  id: number | null | string;
+  gameType: any;
+  variationName: string;
+  mobileBanner: string;
+  siteBanner: string;
+  isNewGame: boolean;
+  productImage: string;
+  additionalDetails: {
+    backgroundImage: string;
+    trainerBackgroundImage: string;
+    playerBackgroundImage: string;
+    img2: string;
+    img6: string;
+    img12: string;
+    img16: string;
+    img21: string;
+    img25: string;
+    img28: string;
+    img33: string;
+    img38: string;
+    img41: string;
+    img45: string;
+    img48: string;
+    img51: string;
+    img58: string;
+  };
+}
 
 function ActiveVariation() {
   const [currentPage, setCurrentPage] = useState(1);
   const [gameListData, setGameListData] = React.useState([]);
   const [selectedValue, setSelectedValue] = useState(null);
 
-  const handleSelectChange = (value: any) => {
-    setSelectedValue(value);
-  };
+
   const { Option } = Select;
 
-  const [openedGame, setOpenedGame] = React.useState<any>({
+  const [openedGame, setOpenedGame] = React.useState<gameOverview>({
     id: null,
     gameType: "",
     variationName: "",
@@ -47,6 +75,19 @@ function ActiveVariation() {
       img58: "",
     },
   });
+
+
+
+  const handleGameTypeInputChange = (
+    e: React.ChangeEvent<HTMLSelectElement>
+  ) => {
+    console.log("e.target.value", e.target.value);
+    setOpenedGame((prevState:any) => ({
+      ...prevState,
+      gameType: e.target.value,
+    }));
+  };
+
 
   const handleNextPage = () => {
     setCurrentPage((prev) => Math.min(prev + 1, totalPages));
@@ -222,26 +263,40 @@ function ActiveVariation() {
                 </div>
                 <div className="border px-6 py-6">
                   <div className="flex flex-col gap-6">
+                    <div className="flex justify-between">
+                      <span className="font-bold text-lg">Basic Details</span>
+                      <span className="font-bold text-lg">{`Opened Game: ${openedGame.id}`}</span>
+                    </div>
                     <Form layout="inline">
                       <Form.Item
                         label="VARIATION NAME
                       "
                       >
-                        <Input placeholder="Enter something..."  value={openedGame?.variationName}/>
+                        <Input
+                          placeholder="Enter something..."
+                          value={openedGame?.variationName}
+                        />
                       </Form.Item>
                       <Form.Item label="Game Type">
                         <Select
                           style={{ width: 200 }}
-                          onChange={handleSelectChange}
+                          onChange={handleGameTypeInputChange}
                           value={openedGame.gameType}
-
                         >
-                          <Option value="option1" >S & L</Option>
-                          <Option value="option2">KBC</Option>
+                          <Option value="snl">S & L</Option>
+                          <Option value="kbc">KBC</Option>
                         </Select>
                       </Form.Item>
                     </Form>
-                    <UploadAndViewVariationForm  />
+                    {openedGame.gameType === "snl" ? (
+                      <>
+                        <UploadAndViewVariationForm />
+                      </>
+                    ) : (
+                      <>
+                        <KbcQuestionFromUpload />
+                      </>
+                    )}
                   </div>
                 </div>
               </div>
