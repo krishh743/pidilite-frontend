@@ -18,7 +18,9 @@ const AdminSetup = () => {
   };
 
   return (
-    <div className="">
+    <div className="pl-4">
+              <h1 className=' text-xl font-bold'>Setup</h1>
+
       <div>
         <TabSwitcher
           tabs={tabs}

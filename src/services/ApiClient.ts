@@ -16,7 +16,7 @@ apiClient.interceptors.request.use((config: AxiosRequestConfig) => {
 
   // If there is a token and the request has headers, update the Authorization header
   if (currentToken && config.headers) {
-    config.headers['Authorization'] = `Bearer ${currentToken}`;
+    config.headers['Authorization'] = ` ${currentToken}`;
     config.headers['Content-Type'] = 'application/json';
   }
 

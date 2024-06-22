@@ -19,8 +19,9 @@ const AddUsers = () => {
   };
 
   return (
-    <div className="">
+    <div className="pl-4">
       <div>
+        <h1 className=' text-xl font-bold'>Add User</h1>
         <TabSwitcher
           tabs={tabs}
           activeTab={activeTab}

@@ -1,22 +1,18 @@
+import { AnyARecord } from "dns";
 import React from "react";
 // import {Datum} from "../../pages/book-rankings/models/BookRankingResponseModel"
-import {GrView} from "react-icons/gr";
 import {useNavigate} from "react-router-dom";
 interface TableThreeProps {
     data: any;
-    setPage: (value: number) => void;
-    currentPage: number;
-    totalPages: number;
-    fromDate: string; // Add fromDate prop
-    toDate: string; // Add toDate prop
+    // setPage: (value: number) => void;
+    children: any;
+   
 }
 // @ts-ignore
 const BookRankingTable: React.FC<TableThreeProps> = ({
                                                data,
-                                               setPage,
-                                           
-                                                         // fromDate, // Receive fromDate prop
-                                                         // toDate, // Receive toDate prop
+                                           children
+                                                         
                                            }) => {
     const navigate =useNavigate()
     // const filteredData = data.filter((row) => {
@@ -73,10 +69,11 @@ const BookRankingTable: React.FC<TableThreeProps> = ({
                             </td>
 
                             <td className="border-b border-[#eee] py-4 px-4 dark-border-strokedark " >
-                                <GrView className=" font-lg cursor-pointer" onClick={()=> {
+                                {/* <GrView className=" font-lg cursor-pointer" onClick={()=> {
                                     navigate(`/rankings/product-views/${row.id}`)
                                 }
-                                }/>
+                                }/> */}
+                                {children}
 
                             </td>
                         </tr>
@@ -87,17 +84,12 @@ const BookRankingTable: React.FC<TableThreeProps> = ({
             <div className="flex justify-end gap-x-2 pb-2 mt-4">
                 <button
                     className="text-sm bg-meta-5 p-2 text-white rounded-md disabled:cursor-not-allowed disabled:bg-body hover:text-blue-700 cursor-pointer"
-                    disabled={currentPage === 1}
-                    onClick={() => currentPage > 1 && setPage(currentPage - 1)}
                 >
                     Previous Page
                 </button>
                 <button
                     className="text-sm bg-meta-5 p-2 text-white rounded-md disabled:cursor-not-allowed disabled:bg-body hover:text-blue-700 cursor-pointer"
-                    disabled={currentPage === totalPages}
-                    onClick={() =>
-                        currentPage !== totalPages && setPage(currentPage + 1)
-                    }
+                   
                 >
                     Next Page
                 </button>

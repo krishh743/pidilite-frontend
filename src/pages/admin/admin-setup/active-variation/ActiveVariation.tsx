@@ -1,51 +1,25 @@
-import React, { useEffect } from "react";
-import searchIcon from "../../../../assets/Images/searchIcon.png";
-import filterIcon from "../../../../assets/Images/filterIcon.png";
-import { useLocation } from "react-router-dom";
-import ".././AdminSetup.css";
-import { Audio, Oval } from "react-loader-spinner";
-import Popup from "reactjs-popup";
-import openeye from "../../../../assets/Images/openeye.png";
+import React, { useEffect, useState } from "react";
+import { AiOutlineDelete } from "react-icons/ai";
+import { tableData } from "../../../../components/data";
+import { IoEyeOutline } from "react-icons/io5";
+import { ToastContainer } from "react-toastify";
+import { Button } from "antd";
+import { GetGamesListAPi } from "../../../../services/ApiServices";
+import UploadAndViewVariationForm from "./UploadAndViewVariationForm";
+import { Form, Input, Select, Upload, Row, Col } from "antd";
+import { UploadOutlined, EyeOutlined } from "@ant-design/icons";
 
-import ImageUploader from "react-image-upload";
-
-interface gameOverview {
-  id: number | null | string;
-  gameType: string;
-  variationName: string;
-  mobileBanner: string;
-  siteBanner: string;
-  isNewGame: boolean;
-  productImage: string;
-  additionalDetails: {
-    backgroundImage: string;
-    trainerBackgroundImage: string;
-    playerBackgroundImage: string;
-    img2: string;
-    img6: string;
-    img12: string;
-    img16: string;
-    img21: string;
-    img25: string;
-    img28: string;
-    img33: string;
-    img38: string;
-    img41: string;
-    img45: string;
-    img48: string;
-    img51: string;
-    img58: string;
-  };
-}
-
-const ActiveVariation = ({ setWindow, window }: any) => {
-  const location = useLocation();
-
-  const baseUri = process.env.REACT_APP_BASE_URL;
-
+function ActiveVariation() {
+  const [currentPage, setCurrentPage] = useState(1);
   const [gameListData, setGameListData] = React.useState([]);
+  const [selectedValue, setSelectedValue] = useState(null);
 
-  const [openedGame, setOpenedGame] = React.useState<gameOverview>({
+  const handleSelectChange = (value: any) => {
+    setSelectedValue(value);
+  };
+  const { Option } = Select;
+
+  const [openedGame, setOpenedGame] = React.useState<any>({
     id: null,
     gameType: "",
     variationName: "",
@@ -74,24 +48,24 @@ const ActiveVariation = ({ setWindow, window }: any) => {
     },
   });
 
-  const [isLoading, setIsLoading] = React.useState(false);
-  const [openPopup, setOpenPopup] = React.useState(false);
-  const [previewedImage, setPreviewedImage] = React.useState("");
+  const handleNextPage = () => {
+    setCurrentPage((prev) => Math.min(prev + 1, totalPages));
+  };
+
+  const handlePreviousPage = () => {
+    setCurrentPage((prev) => Math.max(prev - 1, 1));
+  };
+  const rowsPerPage = 10;
+  const totalPages = Math.ceil(gameListData.length / rowsPerPage);
+  const indexOfLastRow = currentPage * rowsPerPage;
+  const indexOfFirstRow = indexOfLastRow - rowsPerPage;
+  const currentRows = gameListData.slice(indexOfFirstRow, indexOfLastRow);
 
   const fetchGamesList = async () => {
     try {
-      const gamelistResponse = await fetch(`${baseUri}/api/variation/`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `${localStorage.getItem("token")}`,
-          "ngrok-skip-browser-warning": "true",     
-        },
-      });
+      const gamelistResponse = await GetGamesListAPi();
 
-      const gamesListResdata = await gamelistResponse.json();
-      console.log("gamelistResponse", gamesListResdata);
-      setGameListData(gamesListResdata);
+      setGameListData(gamelistResponse?.data);
     } catch (error) {
       console.log(error);
     }
@@ -101,7 +75,7 @@ const ActiveVariation = ({ setWindow, window }: any) => {
     fetchGamesList();
   }, []);
 
-  const openGame = (game: gameOverview) => {
+  const openGameDetails = (game: any) => {
     setOpenedGame({
       id: game.id,
       gameType: game.gameType,
@@ -132,1421 +106,151 @@ const ActiveVariation = ({ setWindow, window }: any) => {
     });
   };
 
-  const handleUpdateExistingGame = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const data = {
-      gameType: openedGame.gameType,
-      variationName: openedGame.variationName,
-      mobileBanner: openedGame.mobileBanner,
-      siteBanner: openedGame.siteBanner,
-      additionalDetails: {
-        backgroundImage: openedGame.additionalDetails.backgroundImage,
-        trainerBackgroundImage:
-          openedGame.additionalDetails.trainerBackgroundImage,
-        playerBackgroundImage:
-          openedGame.additionalDetails.playerBackgroundImage,
-        img2: openedGame.additionalDetails.img2,
-        img6: openedGame.additionalDetails.img6,
-        img12: openedGame.additionalDetails.img12,
-        img16: openedGame.additionalDetails.img16,
-        img21: openedGame.additionalDetails.img21,
-        img25: openedGame.additionalDetails.img25,
-        img28: openedGame.additionalDetails.img28,
-        img33: openedGame.additionalDetails.img33,
-        img38: openedGame.additionalDetails.img38,
-        img41: openedGame.additionalDetails.img41,
-        img45: openedGame.additionalDetails.img45,
-        img48: openedGame.additionalDetails.img48,
-        img51: openedGame.additionalDetails.img51,
-        img58: openedGame.additionalDetails.img58,
-      },
-      status: 1,
-    };
-    console.log("data", data);
-
-    try {
-      const response = await fetch(
-        `${baseUri}/api/variation/${openedGame.id}`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `${localStorage.getItem("token")}`,
-            "ngrok-skip-browser-warning": "true",
-          },
-          body: JSON.stringify(data),
-        }
-      );
-
-      console.log("response", response);
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
-  const handleSaveNewGame = async (e: React.FormEvent) => {
-    console.log("openedGame", openedGame);
-
-    if (openedGame.gameType === "") {
-      alert("Please fill Game Type");
-      return;
-    }
-    if (openedGame.variationName === "") {
-      alert("Please fill Variation Name");
-      return;
-    }
-    if (
-      openedGame.mobileBanner === "" ||
-      openedGame.mobileBanner === undefined
-    ) {
-      alert("Please Upload Mobile Banner");
-      return;
-    }
-    if (openedGame.siteBanner === "") {
-      alert("Please Upload Site Banner");
-      return;
-    }
-
-    if (
-      openedGame.additionalDetails.backgroundImage === "" ||
-      openedGame.additionalDetails.backgroundImage === undefined
-    ) {
-      alert("Please Upload Background Image");
-      return;
-    }
-
-    if (
-      openedGame.additionalDetails.trainerBackgroundImage === "" ||
-      openedGame.additionalDetails.trainerBackgroundImage === undefined
-    ) {
-      alert("Please Upload Trainer Background Image");
-      return;
-    }
-
-    if (
-      openedGame.additionalDetails.playerBackgroundImage === "" ||
-      openedGame.additionalDetails.playerBackgroundImage === undefined
-    ) {
-      alert("Please Upload Player Background Image");
-      return;
-    }
-
-    if (
-      openedGame.additionalDetails.img2 === "" ||
-      openedGame.additionalDetails.img2 === undefined
-    ) {
-      alert("Please Upload Ladder 2 Popup");
-      return;
-    }
-
-    if (
-      openedGame.additionalDetails.img6 === "" ||
-      openedGame.additionalDetails.img6 === undefined
-    ) {
-      alert("Please Upload Ladder 5 Popup");
-      return;
-    }
-
-    if (
-      openedGame.additionalDetails.img12 === "" ||
-      openedGame.additionalDetails.img12 === undefined
-    ) {
-      alert("Please Upload Ladder 10 Popup");
-      return;
-    }
-
-    if (
-      openedGame.additionalDetails.img16 === "" ||
-      openedGame.additionalDetails.img16 === undefined
-    ) {
-      alert("Please Upload Snake 13 Popup");
-      return;
-    }
-
-    if (
-      openedGame.additionalDetails.img21 === "" ||
-      openedGame.additionalDetails.img21 === undefined
-    ) {
-      alert("Please Upload Ladder 17 Popup");
-      return;
-    }
-
-    if (
-      openedGame.additionalDetails.img25 === "" ||
-      openedGame.additionalDetails.img25 === undefined
-    ) {
-      alert("Please Upload Snake 20 Popup");
-      return;
-    }
-
-    if (
-      openedGame.additionalDetails.img28 === "" ||
-      openedGame.additionalDetails.img28 === undefined
-    ) {
-      alert("Please Upload Ladder 22 Popup");
-      return;
-    }
-
-    if (
-      openedGame.additionalDetails.img33 === "" ||
-      openedGame.additionalDetails.img33 === undefined
-    ) {
-      alert("Please Upload Snake 26 Popup");
-      return;
-    }
-
-    if (
-      openedGame.additionalDetails.img38 === "" ||
-      openedGame.additionalDetails.img38 === undefined
-    ) {
-      alert("Please Upload Snake 30 Popup");
-      return;
-    }
-
-    if (
-      openedGame.additionalDetails.img41 === "" ||
-      openedGame.additionalDetails.img41 === undefined
-    ) {
-      alert("Please Upload Ladder 32 Popup");
-      return;
-    }
-
-    if (
-      openedGame.additionalDetails.img45 === "" ||
-      openedGame.additionalDetails.img45 === undefined
-    ) {
-      alert("Please Upload Ladder 35 Popup");
-      return;
-    }
-
-    if (
-      openedGame.additionalDetails.img48 === "" ||
-      openedGame.additionalDetails.img48 === undefined
-    ) {
-      alert("Please Upload Ladder 37 Popup");
-      return;
-    }
-
-    if (
-      openedGame.additionalDetails.img51 === "" ||
-      openedGame.additionalDetails.img51 === undefined
-    ) {
-      alert("Please Upload Snake 39 Popup");
-      return;
-    }
-
-    if (
-      openedGame.additionalDetails.img58 === "" ||
-      openedGame.additionalDetails.img58 === undefined
-    ) {
-      alert("Please Upload Snake 45 Popup");
-      return;
-    }
-
-    e.preventDefault();
-    createNewGame(e);
-  };
-
-  const createNewGame = async (e: React.FormEvent) => {
-    console.log("openedGame", openedGame);
-    try {
-      const response = await fetch(`${baseUri}/api/variation/`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `${localStorage.getItem("token")}`,
-          "ngrok-skip-browser-warning": "true",
-        },
-        body: JSON.stringify({
-          gameType: openedGame.gameType,
-          variationName: openedGame.variationName,
-          mobileBanner: openedGame.mobileBanner,
-          productImage: openedGame.productImage,
-          siteBanner: openedGame.siteBanner,
-          additionalDetails: {
-            backgroundImage: openedGame.additionalDetails.backgroundImage,
-            trainerBackgroundImage:
-              openedGame.additionalDetails.trainerBackgroundImage,
-            playerBackgroundImage:
-              openedGame.additionalDetails.playerBackgroundImage,
-            img2: openedGame.additionalDetails.img2,
-            img6: openedGame.additionalDetails.img6,
-            img12: openedGame.additionalDetails.img12,
-            img16: openedGame.additionalDetails.img16,
-            img21: openedGame.additionalDetails.img21,
-            img25: openedGame.additionalDetails.img25,
-            img28: openedGame.additionalDetails.img28,
-            img33: openedGame.additionalDetails.img33,
-            img38: openedGame.additionalDetails.img38,
-            img41: openedGame.additionalDetails.img41,
-            img45: openedGame.additionalDetails.img45,
-            img48: openedGame.additionalDetails.img48,
-            img51: openedGame.additionalDetails.img51,
-            img58: openedGame.additionalDetails.img58,
-          },
-          status: "1",
-        }),
-      });
-
-      if (response.status === 200) {
-        fetchGamesList();
-      }
-
-      console.log("response", response);
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
-  const handleSave = async (e: React.FormEvent) => {
-    if (openedGame.isNewGame) {
-      handleSaveNewGame(e);
-      return;
-    } else {
-      handleUpdateExistingGame(e);
-    }
-  };
-
-  const handleCancelGameDetailsUpdates = (e: React.MouseEvent) => {
-    e.preventDefault();
-    setOpenedGame({
-      id: null,
-      gameType: "",
-      variationName: "",
-      mobileBanner: "",
-      siteBanner: "",
-      isNewGame: false,
-      productImage: "",
-      additionalDetails: {
-        backgroundImage: "",
-        trainerBackgroundImage: "",
-        playerBackgroundImage: "",
-        img2: "",
-        img6: "",
-        img12: "",
-        img16: "",
-        img21: "",
-        img25: "",
-        img28: "",
-        img33: "",
-        img38: "",
-        img41: "",
-        img45: "",
-        img48: "",
-        img51: "",
-        img58: "",
-      },
-    });
-  };
-
-  const handleOpenNewGameForm = (e: React.MouseEvent) => {
-    e.preventDefault();
-    setOpenedGame({
-      id: "",
-      gameType: "",
-      variationName: "",
-      mobileBanner: "",
-      siteBanner: "",
-      isNewGame: true,
-      productImage: "",
-      additionalDetails: {
-        backgroundImage: "",
-        trainerBackgroundImage: "",
-        playerBackgroundImage: "",
-        img2: "",
-        img6: "",
-        img12: "",
-        img16: "",
-        img21: "",
-        img25: "",
-        img28: "",
-        img33: "",
-        img38: "",
-        img41: "",
-        img45: "",
-        img48: "",
-        img51: "",
-        img58: "",
-      },
-    });
-  };
-
-  const uploadImage = async (imageFile: any) => {
-    setIsLoading(true);
-    const formData = new FormData();
-    formData.append("file", imageFile.file);
-
-    try {
-      const uploadImage = await fetch(`${baseUri}/upload/info`, {
-        method: "POST",
-        headers: {
-          Authorization: `${localStorage.getItem("token")}`,
-          "ngrok-skip-browser-warning": "true",
-        },
-        body: formData,
-      });
-
-      const uploadedImageUrl = await uploadImage.text();
-
-      const encodedFilePath = convertAndEncodePath(uploadedImageUrl);
-
-      console.log("uploadSiteBannerData", encodedFilePath);
-
-      if (uploadImage.status === 200) {
-        setIsLoading(false);
-        return encodedFilePath;
-      }
-    } catch (error) {
-      setIsLoading(false);
-      console.log(error);
-    }
-  };
-
-  // const handleSelectImage = async (imageFile: any, field: string) => {
-  //   const encodedFilePath = await uploadImage(imageFile);
-  //   console.log("uploadSiteBannerData", encodedFilePath);
-
-  //   if (encodedFilePath) {
-  //     if (field.includes(".")) {
-  //       const [parent, child] = field.split(".");
-
-  //       setOpenedGame((prevState) => ({
-  //         ...prevState,
-  //         [parent]: {
-  //           ...prevState[parent as keyof gameOverview],
-  //           [child]: encodedFilePath,
-  //         },
-  //       }));
-  //     } else {
-  //       setOpenedGame((prevState) => ({
-  //         ...prevState,
-  //         [field as keyof gameOverview]: encodedFilePath,
-  //       }));
-  //     }
-  //   }
-  // };
-  const handleSelectImage = async (imageFile: any, field: string) => {
-    const encodedFilePath = await uploadImage(imageFile);
-    console.log("uploadSiteBannerData", encodedFilePath);
-  
-    if (encodedFilePath) {
-      if (field.includes(".")) {
-        const [parent, child] = field.split(".");
-  
-        // Check if parent is an object before spreading
-        setOpenedGame((prevState) => {
-          const parentValue = prevState[parent as keyof gameOverview];
-          
-          // Ensure parentValue is an object
-          if (typeof parentValue === 'object' && parentValue !== null) {
-            return {
-              ...prevState,
-              [parent]: {
-                ...parentValue,
-                [child]: encodedFilePath,
-              },
-            };
-          }
-  
-          return prevState; // Or handle the error case accordingly
-        });
-      } else {
-        setOpenedGame((prevState) => ({
-          ...prevState,
-          [field as keyof gameOverview]: encodedFilePath,
-        }));
-      }
-    }
-  };
-  
-
-  function runAfterImageDelete(file: any) {
-    console.log({ file });
-  }
-
-  function convertAndEncodePath(filePath: any) {
-    const normalizedPath = filePath.replace(/\\/g, "/");
-
-    const encodedPath = encodeURIComponent(normalizedPath);
-
-    return encodedPath;
-  }
-
-  const handlePreviewImage = async (imageUrl: any) => {
-    // console.log("imageUrl", imageUrl)
-
-    if (imageUrl === "" || imageUrl === undefined) {
-      return;
-    }
-
-    setIsLoading(true);
-
-    try {
-      const image = await fetch(`${baseUri}/download/${imageUrl}`, {
-        method: "GET",
-        headers: {
-          Authorization: `${localStorage.getItem("token")}`,
-          "ngrok-skip-browser-warning": "true",
-        },
-      });
-
-      const imageBlob = await image.blob();
-      const imageSrc = URL.createObjectURL(imageBlob);
-      setOpenPopup(false);
-      setPreviewedImage(imageSrc);
-      setOpenPopup(true);
-      setIsLoading(false);
-    } catch (error) {
-      console.log(error);
-      setOpenPopup(false);
-      setIsLoading(false);
-    }
-  };
-
-  const handleGameTypeInputChange = (
-    e: React.ChangeEvent<HTMLSelectElement>
-  ) => {
-    console.log("e.target.value", e.target.value);
-    setOpenedGame((prevState) => ({
-      ...prevState,
-      gameType: e.target.value,
-    }));
-  };
-
-  const handleVariationNameInputChange = (
-    e: React.ChangeEvent<HTMLInputElement>
-  ) => {
-    setOpenedGame((prevState) => ({
-      ...prevState,
-      variationName: e.target.value,
-    }));
-  };
-
-  const handleClosePopup = () => {
-    setOpenPopup(false);
-  };
-
-  const handleChangeTab = (tab: any) => {
-    setWindow(tab);
-  };
-
   return (
-    <div className="adminGamesListMain">
-      <Popup
-        open={openPopup}
-        onClose={handleClosePopup}
-        position="right center"
-      >
-        <div className="popupContent">
-          <img src={previewedImage} alt="" className="previewImage" />
-        </div>
-      </Popup>
-      {isLoading && (
-        <div className="loaderContainer">
-          <div className="loader">
-            <Oval
-              visible={true}
-              height="50"
-              width="50"
-              color="#ffffff"
-              ariaLabel="oval-loading"
-              // wrapperStyle={{}}
-              // wrapperClass=""
-            />
+    <div>
+      <ToastContainer />
+      <div className="flex gap-4">
+        <div>
+          <div className="flex direction-row justify-end items-center mb-4">
+            <Button
+              // onClick={handleAddUserClick}
+              className="text-sm bg-black text-white font-bold hover:bg-blue-700 px-4 rounded-md"
+            >
+              Add Game
+            </Button>
           </div>
-        </div>
-      )}
-      {/* <div className="setupPanel">
-                <h3 className="trainingGamesHeader">Training Games &gt; Setup</h3>
+          <div className="w-full overflow-x-auto">
+            <div className="rounded-sm border border-stroke bg-white px-4 pt-6 pb-2.5 shadow-default dark:border-strokedark dark:bg-boxdark sm:px-7.5 xl:pb-1">
+              <div className="max-w-full overflow-x-auto">
+                <table className="w-full table-auto">
+                  <thead>
+                    <tr className="bg-gray-2 text-left dark:bg-meta-4">
+                      <th className="min-w-[120px] py-4 px-4 font-medium text-black dark:text-white">
+                        S.No
+                      </th>
+                      <th className="min-w-[120px] py-4 px-4  font-medium text-black dark:text-white">
+                        Game Type
+                      </th>
+                      <th className="min-w-[220px] py-4 px-4 font-medium text-black dark:text-white xl:pl-11">
+                        Variation Name
+                      </th>
+                      <th className="min-w-[150px] py-4 px-4 font-medium text-black dark:text-white">
+                        Banner
+                      </th>
 
-                <div className="panelBtns">
-                    <div className="LiveAndArchiveBtns">
-                        <button className={`${window === 'games-list' ? 'openedWindow' :''}`} onClick={ () => handleChangeTab('games-list')}>Games List</button>
-                        <button className={`${window === 'ongoing-games' ? 'openedWindow' :''}`} onClick={ () => handleChangeTab('ongoing-games')}>Ongoing Games</button>
-                        <button className={`${window === 'archives' ? 'openedWindow' :''}`} onClick={ () => handleChangeTab('archives')}>Archives</button>
-                    </div>
-                    <div className="basicDetailsHeaderBtns">
-                        <button className="saveButton"  onClick={handleSave}>SAVE</button>
-                        <button className="saveButton cancel"  onClick={handleCancelGameDetailsUpdates}>CANCEL</button>
-                    </div>
-                </div>
+                      <th className="py-4 px-4 font-medium text-black dark:text-white">
+                        Actions
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {currentRows &&
+                      currentRows?.map((row: any, index) => (
+                        <tr key={index}>
+                          <td className="border-b border-[#eee] py-4 px-4 dark:border-strokedark text-left">
+                            {/* <p className="inline-flex py-1 px-3 text-sm font-medium text-left"> */}
+                            {index + 1}
+                            {/* </p> */}
+                          </td>
+                          <td className="border-b border-[#eee] py-4 px-4 dark:border-strokedark  text-left">
+                            {/* <h5 className="font-medium text-black dark:text-white"> */}
+                            {row?.id}
+                            {/* </h5> */}
+                          </td>
+                          <td className="border-b border-[#eee] pl-10 dark:border-strokedark ">
+                            {/* <p className="inline-flex rounded-full bg-success bg-opacity-10 py-1 px-3 text-sm font-medium text-success"> */}
+                            {row.variationName}
+                            {/* </p> */}
+                          </td>
+                          <td className="border-b border-[#eee] py-4 px-4 dark:border-strokedark  text-left">
+                            {row?.mobileBanner}
+                          </td>
 
-
-            </div> */}
-      <div className="listAndDetailsContainer">
-        <div className="listContainer">
-          <div className="listTableTopDiv">
-            <h2 className="">GAMES LIST</h2>
-            <div className="searchAndFilterIcons">
-              <img src={searchIcon} alt="" className="searchIcon" />
-              <img src={filterIcon} alt="" className="filterIcon" />
+                          <td className="flex gap-4 border-b border-[#eee] py-4 px-4 dark:border-strokedark">
+                            <IoEyeOutline
+                              className="text-lg cursor-pointer"
+                              onClick={() => openGameDetails(row)}
+                            />
+                            <AiOutlineDelete
+                              className="text-lg cursor-pointer"
+                              // onClick={() => handleOpenConfirmDelete(row?.id)}
+                            />
+                          </td>
+                        </tr>
+                      ))}
+                  </tbody>
+                </table>
+              </div>
+              <div className="flex justify-end gap-x-2 pb-2 mt-4">
+                <button
+                  onClick={handlePreviousPage}
+                  disabled={currentPage === 1}
+                  className="text-sm bg-meta-5 p-2 text-white rounded-md disabled:cursor-not-allowed disabled:bg-body hover:text-blue-700 cursor-pointer"
+                >
+                  Previous Page
+                </button>
+                <button
+                  onClick={handleNextPage}
+                  disabled={currentPage === totalPages}
+                  className="text-sm bg-meta-5 p-2 text-white rounded-md disabled:cursor-not-allowed disabled:bg-body hover:text-blue-700 cursor-pointer"
+                >
+                  Next Page
+                </button>
+              </div>
             </div>
           </div>
-          <table className="adminListTable">
-            <thead>
-              <tr className="listTableHeader">
-                <th>Sno</th>
-                <th>Game Type</th>
-                <th>Variation Name</th>
-                <th>Banner</th>
-                <th>View</th>
-                <th>Duplicate</th>
-              </tr>
-            </thead>
-            <tbody className="listTableBody">
-              {gameListData?.map((game: gameOverview, index) => (
-                <tr key={index}>
-                  <td>{game.id}</td>
-                  <td>{game.gameType}</td>
-                  <td>{game.variationName}</td>
-                  <td>{game.mobileBanner}</td>
-                  <td className="viewColumn">
-                    <img
-                      className="openEye"
-                      onClick={() => openGame(game)}
-                      src={openeye}
-                      alt="openeye"
-                    ></img>
-                  </td>
-                  <td>
-                    <button className="duplicateBtn">Duplicate</button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-          <button className="addGameBtn" onClick={handleOpenNewGameForm}>
-            Add Game
-          </button>
         </div>
-        <div className="detailsContainer">
+        <div>
           {openedGame.id === null ? (
             <div className="">No opened Game</div>
           ) : (
-            <div className="rightContainers">
-              <div className="basicDetailsContainer">
-                <div className="basicDetailsHeader">
-                  <span className="basicDetails">BASIC DETAILS</span>
-                  <span className="">{`opened game: ${openedGame.id}`}</span>
+            <>
+              <div className="w-full">
+                <div className="flex direction-row justify-end items-center mb-4">
+                  <Button
+                    // onClick={handleAddUserClick}
+                    className="text-sm bg-black text-white font-bold hover:bg-blue-700 px-4 rounded-md"
+                  >
+                    Save
+                  </Button>
+                  <Button
+                    // onClick={handleAddUserClick}
+                    className="text-sm bg-black text-white font-bold hover:bg-blue-700 px-4 rounded-md"
+                  >
+                    Cancel
+                  </Button>
                 </div>
-                <div className="basicDetailsPanel">
-                  <div className="IDAndGameTypeContainer">
-                    <div className="IDContainer">
-                      {/* <span className="">ID</span>
-                          <input type="text" className="" value={openedGame.customId} onChange={handleIDInputChange}></input> */}
-                      <span className="">VARIATION NAME</span>
-                      <input
-                        type="text"
-                        className=""
-                        value={openedGame.variationName}
-                        onChange={handleVariationNameInputChange}
-                      ></input>
-                    </div>
-                    <div className="GameTypeContainer">
-                      <span className="">Game Type</span>
-                      <select
-                        className="gametTypeSelect"
-                        defaultValue={""}
-                        value={openedGame.gameType}
-                        onChange={handleGameTypeInputChange}
+                <div className="border px-6 py-6">
+                  <div className="flex flex-col gap-6">
+                    <Form layout="inline">
+                      <Form.Item
+                        label="VARIATION NAME
+                      "
                       >
-                        <option value="snl">SNL</option>
-                        <option value="kbc">KBC</option>
-                      </select>
-                    </div>
-                  </div>
-                  <div className="VariationNameContainer">
-                    {/* <span className="">VARIATION NAME</span>
-                        <input type="text" className="" value={openedGame.variationName} onChange={handleVariationNameInputChange} ></input> */}
-                  </div>
-                  <div className="SiteBannerContainer">
-                    {/* <span className="">Add Site Banner<br />(xx px by YY px)</span> */}
-                    <span className="">
-                      Add Site Banner
-                      <br />
-                      (1280 px by 150 px)
-                    </span>
+                        <Input placeholder="Enter something..."  value={openedGame?.variationName}/>
+                      </Form.Item>
+                      <Form.Item label="Game Type">
+                        <Select
+                          style={{ width: 200 }}
+                          onChange={handleSelectChange}
+                          value={openedGame.gameType}
 
-                    <div className="SiteBannerContainerBtns">
-                      <button className="uploadBtn">
-                        <ImageUploader
-                          style={{
-                            height: 29,
-                            width: 156,
-                            background: "##F9F7F7",
-                          }}
-                          uploadIcon="Upload"
-                          deleteIcon=""
-                          // onFileAdded={(img) => handleSelectSiteBannerImage(img)}
-                          onFileAdded={(img) =>
-                            handleSelectImage(img, "siteBanner")
-                          }
-                          onFileRemoved={(img) => runAfterImageDelete(img)}
-                        />
-                      </button>
-                      <div className="PreviewAndDeleteBtns">
-                        <button
-                          className={`previewBtn ${
-                            openedGame.siteBanner !== ""
-                              ? "previewBtnActive"
-                              : ""
-                          }`}
-                          onClick={() =>
-                            handlePreviewImage(openedGame.siteBanner)
-                          }
                         >
-                          Preview
-                        </button>
-                        {/* <button className="deleteBtn">Delete</button> */}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="SiteBannerContainer">
-                    <span className="">Add Product Image</span>
-                    <div className="SiteBannerContainerBtns">
-                      <button className="uploadBtn">
-                        <ImageUploader
-                          style={{
-                            height: 29,
-                            width: 156,
-                            background: "##F9F7F7",
-                          }}
-                          uploadIcon="Upload"
-                          deleteIcon=""
-                          // onFileAdded={(img) => handleSelectSiteBannerImage(img)}
-                          onFileAdded={(img) =>
-                            handleSelectImage(img, "productImage")
-                          }
-                          onFileRemoved={(img) => runAfterImageDelete(img)}
-                        />
-                      </button>
-                      <div className="PreviewAndDeleteBtns">
-                        <button
-                          className={`previewBtn ${
-                            openedGame.productImage !== ""
-                              ? "previewBtnActive"
-                              : ""
-                          }`}
-                          onClick={() =>
-                            handlePreviewImage(openedGame.productImage)
-                          }
-                        >
-                          Preview
-                        </button>
-                        {/* <button className="deleteBtn">Delete</button> */}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="MobileBannerContainer">
-                    <span className="">
-                      Add Mobile Banner
-                      <br />
-                      (375 px by 181 px)
-                    </span>
-                    <div className="MobileBannerBtns">
-                      <button className="uploadBtn">
-                        <ImageUploader
-                          style={{
-                            height: 29,
-                            width: 156,
-                            background: "##F9F7F7",
-                          }}
-                          uploadIcon="Upload"
-                          deleteIcon=""
-                          onFileAdded={(img) =>
-                            handleSelectImage(img, "mobileBanner")
-                          }
-                          // onFileRemoved={(img) => runAfterImageDelete(img)}
-                        />
-                      </button>
-                      <div className="PreviewAndDeleteBtns">
-                        <button
-                          className={`previewBtn ${
-                            openedGame.mobileBanner !== ""
-                              ? "previewBtnActive"
-                              : ""
-                          }`}
-                          onClick={() =>
-                            handlePreviewImage(openedGame.mobileBanner)
-                          }
-                        >
-                          Preview
-                        </button>
-                        {/* <button className="deleteBtn">Delete</button> */}
-                      </div>
-                    </div>
+                          <Option value="option1" >S & L</Option>
+                          <Option value="option2">KBC</Option>
+                        </Select>
+                      </Form.Item>
+                    </Form>
+                    <UploadAndViewVariationForm  />
                   </div>
                 </div>
               </div>
-              <div className="additionalDetailsContainer">
-                <div className="additionalDetailsHeader">
-                  <span className="additionalDetails">ADDITIONAL DETAILS</span>
-                </div>
-                <div className="additionalDetailsPanel">
-                  <div className="AdditionalDetailsRow">
-                    <span className="">
-                      Add Board Background Image
-                      <br />
-                      (1174 px by 790 px)
-                    </span>
-                    <div className="SiteBannerContainerBtns">
-                      <button className="uploadBtn">
-                        <ImageUploader
-                          style={{
-                            height: 29,
-                            width: 156,
-                            background: "##F9F7F7",
-                          }}
-                          uploadIcon="Upload"
-                          deleteIcon=""
-                          onFileAdded={(img) =>
-                            handleSelectImage(
-                              img,
-                              "additionalDetails.backgroundImage"
-                            )
-                          }
-                          onFileRemoved={(img) => runAfterImageDelete(img)}
-                        />
-                      </button>
-                      <div className="PreviewAndDeleteBtns">
-                        <button
-                          className={`previewBtn ${
-                            openedGame.additionalDetails.backgroundImage !== ""
-                              ? "previewBtnActive"
-                              : ""
-                          }`}
-                          onClick={() =>
-                            handlePreviewImage(
-                              openedGame.additionalDetails.backgroundImage
-                            )
-                          }
-                        >
-                          Preview
-                        </button>
-                        {/* <button className="deleteBtn">Delete</button> */}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="AdditionalDetailsRow">
-                    <span className="">
-                      Add Trainer Background Image
-                      <br />
-                      (1280 px by 720 px)
-                    </span>
-                    <div className="SiteBannerContainerBtns">
-                      <button className="uploadBtn">
-                        <ImageUploader
-                          style={{
-                            height: 29,
-                            width: 156,
-                            background: "##F9F7F7",
-                          }}
-                          uploadIcon="Upload"
-                          deleteIcon=""
-                          onFileAdded={(img) =>
-                            handleSelectImage(
-                              img,
-                              "additionalDetails.trainerBackgroundImage"
-                            )
-                          }
-                          onFileRemoved={(img) => runAfterImageDelete(img)}
-                        />
-                      </button>
-                      <div className="PreviewAndDeleteBtns">
-                        <button
-                          className={`previewBtn ${
-                            openedGame.additionalDetails
-                              .trainerBackgroundImage !== ""
-                              ? "previewBtnActive"
-                              : ""
-                          }`}
-                          onClick={() =>
-                            handlePreviewImage(
-                              openedGame.additionalDetails
-                                .trainerBackgroundImage
-                            )
-                          }
-                        >
-                          Preview
-                        </button>
-                        {/* <button className="deleteBtn">Delete</button> */}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="AdditionalDetailsRow">
-                    <span className="">
-                      Add Player Background Image
-                      <br />
-                      (750 px by 1280 px)
-                    </span>
-                    <div className="SiteBannerContainerBtns">
-                      <button className="uploadBtn">
-                        <ImageUploader
-                          style={{
-                            height: 29,
-                            width: 156,
-                            background: "##F9F7F7",
-                          }}
-                          uploadIcon="Upload"
-                          deleteIcon=""
-                          onFileAdded={(img) =>
-                            handleSelectImage(
-                              img,
-                              "additionalDetails.playerBackgroundImage"
-                            )
-                          }
-                          onFileRemoved={(img) => runAfterImageDelete(img)}
-                        />
-                      </button>
-                      <div className="PreviewAndDeleteBtns">
-                        <button
-                          className={`previewBtn ${
-                            openedGame.additionalDetails
-                              .playerBackgroundImage !== ""
-                              ? "previewBtnActive"
-                              : ""
-                          }`}
-                          onClick={() =>
-                            handlePreviewImage(
-                              openedGame.additionalDetails.playerBackgroundImage
-                            )
-                          }
-                        >
-                          Preview
-                        </button>
-                        {/* <button className="deleteBtn">Delete</button> */}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="AdditionalDetailsRow">
-                    <span className="">Ladder 2 Pop up</span>
-                    <div className="SiteBannerContainerBtns">
-                      <button className="uploadBtn">
-                        <ImageUploader
-                          style={{
-                            height: 29,
-                            width: 156,
-                            background: "##F9F7F7",
-                          }}
-                          uploadIcon="Upload"
-                          deleteIcon=""
-                          onFileAdded={(img) =>
-                            handleSelectImage(img, "additionalDetails.img2")
-                          }
-                          onFileRemoved={(img) => runAfterImageDelete(img)}
-                        />
-                      </button>
-                      <div className="PreviewAndDeleteBtns">
-                        <button
-                          className={`previewBtn ${
-                            openedGame.additionalDetails.img2 !== ""
-                              ? "previewBtnActive"
-                              : ""
-                          }`}
-                          onClick={() =>
-                            handlePreviewImage(
-                              openedGame.additionalDetails.img2
-                            )
-                          }
-                        >
-                          Preview
-                        </button>
-                        {/* <button className="deleteBtn">Delete</button> */}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="AdditionalDetailsRow">
-                    <span className="">Ladder 5 Pop up</span>
-                    <div className="SiteBannerContainerBtns">
-                      <button className="uploadBtn">
-                        <ImageUploader
-                          style={{
-                            height: 29,
-                            width: 156,
-                            background: "##F9F7F7",
-                          }}
-                          uploadIcon="Upload"
-                          deleteIcon=""
-                          onFileAdded={(img) =>
-                            handleSelectImage(img, "additionalDetails.img6")
-                          }
-                          onFileRemoved={(img) => runAfterImageDelete(img)}
-                        />
-                      </button>
-                      <div className="PreviewAndDeleteBtns">
-                        <button
-                          className={`previewBtn ${
-                            openedGame.additionalDetails.img6 !== ""
-                              ? "previewBtnActive"
-                              : ""
-                          }`}
-                          onClick={() =>
-                            handlePreviewImage(
-                              openedGame.additionalDetails.img6
-                            )
-                          }
-                        >
-                          Preview
-                        </button>
-                        {/* <button className="deleteBtn">Delete</button> */}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="AdditionalDetailsRow">
-                    <span className="">Ladder 10 Pop up</span>
-                    <div className="SiteBannerContainerBtns">
-                      <button className="uploadBtn">
-                        <ImageUploader
-                          style={{
-                            height: 29,
-                            width: 156,
-                            background: "##F9F7F7",
-                          }}
-                          uploadIcon="Upload"
-                          deleteIcon=""
-                          onFileAdded={(img) =>
-                            handleSelectImage(img, "additionalDetails.img12")
-                          }
-                          onFileRemoved={(img) => runAfterImageDelete(img)}
-                        />
-                      </button>
-                      <div className="PreviewAndDeleteBtns">
-                        <button
-                          className={`previewBtn ${
-                            openedGame.additionalDetails.img12 !== ""
-                              ? "previewBtnActive"
-                              : ""
-                          }`}
-                          onClick={() =>
-                            handlePreviewImage(
-                              openedGame.additionalDetails.img12
-                            )
-                          }
-                        >
-                          Preview
-                        </button>
-                        {/* <button className="deleteBtn">Delete</button> */}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="AdditionalDetailsRow">
-                    <span className="">Snake 13 Pop up</span>
-                    <div className="SiteBannerContainerBtns">
-                      <button className="uploadBtn">
-                        <ImageUploader
-                          style={{
-                            height: 29,
-                            width: 156,
-                            background: "##F9F7F7",
-                          }}
-                          uploadIcon="Upload"
-                          deleteIcon=""
-                          onFileAdded={(img) =>
-                            handleSelectImage(img, "additionalDetails.img16")
-                          }
-                          onFileRemoved={(img) => runAfterImageDelete(img)}
-                        />
-                      </button>
-                      <div className="PreviewAndDeleteBtns">
-                        <button
-                          className={`previewBtn ${
-                            openedGame.additionalDetails.img16 !== ""
-                              ? "previewBtnActive"
-                              : ""
-                          }`}
-                          onClick={() =>
-                            handlePreviewImage(
-                              openedGame.additionalDetails.img16
-                            )
-                          }
-                        >
-                          Preview
-                        </button>
-                        {/* <button className="deleteBtn">Delete</button> */}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="AdditionalDetailsRow">
-                    <span className="">Ladder 17 Pop up</span>
-                    <div className="SiteBannerContainerBtns">
-                      <button className="uploadBtn">
-                        <ImageUploader
-                          style={{
-                            height: 29,
-                            width: 156,
-                            background: "##F9F7F7",
-                          }}
-                          uploadIcon="Upload"
-                          deleteIcon=""
-                          onFileAdded={(img) =>
-                            handleSelectImage(img, "additionalDetails.img21")
-                          }
-                          onFileRemoved={(img) => runAfterImageDelete(img)}
-                        />
-                      </button>
-                      <div className="PreviewAndDeleteBtns">
-                        <button
-                          className={`previewBtn ${
-                            openedGame.additionalDetails.img21 !== ""
-                              ? "previewBtnActive"
-                              : ""
-                          }`}
-                          onClick={() =>
-                            handlePreviewImage(
-                              openedGame.additionalDetails.img21
-                            )
-                          }
-                        >
-                          Preview
-                        </button>
-                        {/* <button className="deleteBtn">Delete</button> */}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="AdditionalDetailsRow">
-                    <span className="">Snake 20 Pop up</span>
-                    <div className="SiteBannerContainerBtns">
-                      <button className="uploadBtn">
-                        <ImageUploader
-                          style={{
-                            height: 29,
-                            width: 156,
-                            background: "##F9F7F7",
-                          }}
-                          uploadIcon="Upload"
-                          deleteIcon=""
-                          onFileAdded={(img) =>
-                            handleSelectImage(img, "additionalDetails.img25")
-                          }
-                          onFileRemoved={(img) => runAfterImageDelete(img)}
-                        />
-                      </button>
-                      <div className="PreviewAndDeleteBtns">
-                        <button
-                          className={`previewBtn ${
-                            openedGame.additionalDetails.img25 !== ""
-                              ? "previewBtnActive"
-                              : ""
-                          }`}
-                          onClick={() =>
-                            handlePreviewImage(
-                              openedGame.additionalDetails.img25
-                            )
-                          }
-                        >
-                          Preview
-                        </button>
-                        {/* <button className="deleteBtn">Delete</button> */}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="AdditionalDetailsRow">
-                    <span className="">Ladder 22 Pop up</span>
-                    <div className="SiteBannerContainerBtns">
-                      <button className="uploadBtn">
-                        <ImageUploader
-                          style={{
-                            height: 29,
-                            width: 156,
-                            background: "##F9F7F7",
-                          }}
-                          uploadIcon="Upload"
-                          deleteIcon=""
-                          onFileAdded={(img) =>
-                            handleSelectImage(img, "additionalDetails.img28")
-                          }
-                          onFileRemoved={(img) => runAfterImageDelete(img)}
-                        />
-                      </button>
-                      <div className="PreviewAndDeleteBtns">
-                        <button
-                          className={`previewBtn ${
-                            openedGame.additionalDetails.img28 !== ""
-                              ? "previewBtnActive"
-                              : ""
-                          }`}
-                          onClick={() =>
-                            handlePreviewImage(
-                              openedGame.additionalDetails.img28
-                            )
-                          }
-                        >
-                          Preview
-                        </button>
-                        {/* <button className="deleteBtn">Delete</button> */}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="AdditionalDetailsRow">
-                    <span className="">Snake 26 Pop up</span>
-                    <div className="SiteBannerContainerBtns">
-                      <button className="uploadBtn">
-                        <ImageUploader
-                          style={{
-                            height: 29,
-                            width: 156,
-                            background: "##F9F7F7",
-                          }}
-                          uploadIcon="Upload"
-                          deleteIcon=""
-                          onFileAdded={(img) =>
-                            handleSelectImage(img, "additionalDetails.img33")
-                          }
-                          onFileRemoved={(img) => runAfterImageDelete(img)}
-                        />
-                      </button>
-                      <div className="PreviewAndDeleteBtns">
-                        <button
-                          className={`previewBtn ${
-                            openedGame.additionalDetails.img33 !== ""
-                              ? "previewBtnActive"
-                              : ""
-                          }`}
-                          onClick={() =>
-                            handlePreviewImage(
-                              openedGame.additionalDetails.img33
-                            )
-                          }
-                        >
-                          Preview
-                        </button>
-                        {/* <button className="deleteBtn">Delete</button> */}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="AdditionalDetailsRow">
-                    <span className="">Snake 30 Pop up</span>
-                    <div className="SiteBannerContainerBtns">
-                      <button className="uploadBtn">
-                        <ImageUploader
-                          style={{
-                            height: 29,
-                            width: 156,
-                            background: "##F9F7F7",
-                          }}
-                          uploadIcon="Upload"
-                          deleteIcon=""
-                          onFileAdded={(img) =>
-                            handleSelectImage(img, "additionalDetails.img38")
-                          }
-                          onFileRemoved={(img) => runAfterImageDelete(img)}
-                        />
-                      </button>
-                      <div className="PreviewAndDeleteBtns">
-                        <button
-                          className={`previewBtn ${
-                            openedGame.additionalDetails.img38 !== ""
-                              ? "previewBtnActive"
-                              : ""
-                          }`}
-                          onClick={() =>
-                            handlePreviewImage(
-                              openedGame.additionalDetails.img38
-                            )
-                          }
-                        >
-                          Preview
-                        </button>
-                        {/* <button className="deleteBtn">Delete</button> */}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="AdditionalDetailsRow">
-                    <span className="">Ladder 32 Pop up</span>
-                    <div className="SiteBannerContainerBtns">
-                      <button className="uploadBtn">
-                        <ImageUploader
-                          style={{
-                            height: 29,
-                            width: 156,
-                            background: "##F9F7F7",
-                          }}
-                          uploadIcon="Upload"
-                          deleteIcon=""
-                          onFileAdded={(img) =>
-                            handleSelectImage(img, "additionalDetails.img41")
-                          }
-                          onFileRemoved={(img) => runAfterImageDelete(img)}
-                        />
-                      </button>
-                      <div className="PreviewAndDeleteBtns">
-                        <button
-                          className={`previewBtn ${
-                            openedGame.additionalDetails.img41 !== ""
-                              ? "previewBtnActive"
-                              : ""
-                          }`}
-                          onClick={() =>
-                            handlePreviewImage(
-                              openedGame.additionalDetails.img41
-                            )
-                          }
-                        >
-                          Preview
-                        </button>
-                        {/* <button className="deleteBtn">Delete</button> */}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="AdditionalDetailsRow">
-                    <span className="">Ladder 35 Pop up</span>
-                    <div className="SiteBannerContainerBtns">
-                      <button className="uploadBtn">
-                        <ImageUploader
-                          style={{
-                            height: 29,
-                            width: 156,
-                            background: "##F9F7F7",
-                          }}
-                          uploadIcon="Upload"
-                          deleteIcon=""
-                          onFileAdded={(img) =>
-                            handleSelectImage(img, "additionalDetails.img45")
-                          }
-                          onFileRemoved={(img) => runAfterImageDelete(img)}
-                        />
-                      </button>
-                      <div className="PreviewAndDeleteBtns">
-                        <button
-                          className={`previewBtn ${
-                            openedGame.additionalDetails.img45 !== ""
-                              ? "previewBtnActive"
-                              : ""
-                          }`}
-                          onClick={() =>
-                            handlePreviewImage(
-                              openedGame.additionalDetails.img45
-                            )
-                          }
-                        >
-                          Preview
-                        </button>
-                        {/* <button className="deleteBtn">Delete</button> */}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="AdditionalDetailsRow">
-                    <span className="">Ladder 37 Pop up</span>
-                    <div className="SiteBannerContainerBtns">
-                      <button className="uploadBtn">
-                        <ImageUploader
-                          style={{
-                            height: 29,
-                            width: 156,
-                            background: "##F9F7F7",
-                          }}
-                          uploadIcon="Upload"
-                          deleteIcon=""
-                          onFileAdded={(img) =>
-                            handleSelectImage(img, "additionalDetails.img48")
-                          }
-                          onFileRemoved={(img) => runAfterImageDelete(img)}
-                        />
-                      </button>
-                      <div className="PreviewAndDeleteBtns">
-                        <button
-                          className={`previewBtn ${
-                            openedGame.additionalDetails.img48 !== ""
-                              ? "previewBtnActive"
-                              : ""
-                          }`}
-                          onClick={() =>
-                            handlePreviewImage(
-                              openedGame.additionalDetails.img48
-                            )
-                          }
-                        >
-                          Preview
-                        </button>
-                        {/* <button className="deleteBtn">Delete</button> */}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="AdditionalDetailsRow">
-                    <span className="">Snake 39 Pop up</span>
-                    <div className="SiteBannerContainerBtns">
-                      <button className="uploadBtn">
-                        <ImageUploader
-                          style={{
-                            height: 29,
-                            width: 156,
-                            background: "##F9F7F7",
-                          }}
-                          uploadIcon="Upload"
-                          deleteIcon=""
-                          onFileAdded={(img) =>
-                            handleSelectImage(img, "additionalDetails.img51")
-                          }
-                          onFileRemoved={(img) => runAfterImageDelete(img)}
-                        />
-                      </button>
-                      <div className="PreviewAndDeleteBtns">
-                        <button
-                          className={`previewBtn ${
-                            openedGame.additionalDetails.img51 !== ""
-                              ? "previewBtnActive"
-                              : ""
-                          }`}
-                          onClick={() =>
-                            handlePreviewImage(
-                              openedGame.additionalDetails.img51
-                            )
-                          }
-                        >
-                          Preview
-                        </button>
-                        {/* <button className="deleteBtn">Delete</button> */}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="AdditionalDetailsRow">
-                    <span className="">Snake 45 Pop up</span>
-                    <div className="SiteBannerContainerBtns">
-                      <button className="uploadBtn">
-                        <ImageUploader
-                          style={{
-                            height: 29,
-                            width: 156,
-                            background: "##F9F7F7",
-                          }}
-                          uploadIcon="Upload"
-                          deleteIcon=""
-                          onFileAdded={(img) =>
-                            handleSelectImage(img, "additionalDetails.img58")
-                          }
-                          onFileRemoved={(img) => runAfterImageDelete(img)}
-                        />
-                      </button>
-                      <div className="PreviewAndDeleteBtns">
-                        <button
-                          className={`previewBtn ${
-                            openedGame.additionalDetails.img58 !== ""
-                              ? "previewBtnActive"
-                              : ""
-                          }`}
-                          onClick={() =>
-                            handlePreviewImage(
-                              openedGame.additionalDetails.img58
-                            )
-                          }
-                        >
-                          Preview
-                        </button>
-                        {/* <button className="deleteBtn">Delete</button> */}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+            </>
           )}
         </div>
       </div>
     </div>
   );
-};
+}
 
 export default ActiveVariation;
