@@ -9,6 +9,18 @@ import KbcQuestionFormUpload from "./KbcQuestionFromUpload";
 
 const { Option } = Select;
 
+interface IOptions {
+  option: string;
+  optionImage: string;
+}
+
+interface IQuestions {
+  question: string;
+  correctAnswer: number | string;
+  questionImage: string;
+  options: IOptions[];
+}
+
 interface gameOverview {
   id: number | null | string;
   gameType: string;
@@ -21,6 +33,7 @@ interface gameOverview {
     backgroundImage: string;
     trainerBackgroundImage: string;
     playerBackgroundImage: string;
+    questions?: IQuestions[];
     img2: string;
     img6: string;
     img12: string;
@@ -50,6 +63,20 @@ const defaultGameOverview: gameOverview = {
     backgroundImage: "",
     trainerBackgroundImage: "",
     playerBackgroundImage: "",
+    questions: [
+      {
+        question: "",
+        correctAnswer: "",
+        questionImage: "",
+        options: [
+          {
+            option: "",
+            optionImage: ""
+          }
+        ]
+
+      }
+    ],
     img2: "",
     img6: "",
     img12: "",
@@ -238,14 +265,11 @@ function ActiveVariation() {
           ) : (
             <div className="w-full">
               <div className="flex direction-row justify-end gap-4 items-center mb-4">
-                {openedGame.id === 2 ? (
-                  <>
-                    {" "}
-                    <Button className="text-sm bg-black text-white font-bold hover:bg-blue-700 px-4 rounded-md">
-                      Save
-                    </Button>
-                  </>
-                ) : null}
+
+                <Button className="text-sm bg-black text-white font-bold hover:bg-blue-700 px-4 rounded-md">
+                  Save
+                </Button>
+
 
                 <Button
                   onClick={handleCancelGameDetailsUpdates}
@@ -278,6 +302,10 @@ function ActiveVariation() {
                       </Select>
                     </Form.Item>
                   </Form>
+
+                  {/* add basic details banners */}
+                  
+                  
                   {openedGame.gameType === "snl" ? (
                     <UploadAndViewVariationForm openedGame={openedGame} />
                   ) : (

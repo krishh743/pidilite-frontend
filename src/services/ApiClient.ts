@@ -24,7 +24,7 @@ apiClient.interceptors.request.use((config: AxiosRequestConfig) => {
 });
 
 // Response interceptor
-apiClient.interceptors.response.use((response) => {
+apiClient.interceptors.response.use((response: any) => {
   return response;
 });
 
