@@ -31,4 +31,18 @@ export const GetGamesListAPi = async (): Promise<any> => {
   return response;
 }
 
+export const GetArchivedListApi = async (): Promise<any> => {
 
+  const response = await apiClient.get(`${Endpoints.getGamesList}?status=2`,);
+  return response;
+}
+
+export const GetGamesArchivedFromListApi = async (id:any): Promise<any> => {
+
+  const response = await apiClient.get(`${Endpoints.getGamesList}/${id}`,);
+  return response;
+}
+
+
+
+// /api/variation?status=2
