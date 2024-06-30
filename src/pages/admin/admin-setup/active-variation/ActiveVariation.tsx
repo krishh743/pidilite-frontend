@@ -1,11 +1,12 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { AiOutlineDelete } from "react-icons/ai";
 import { IoEyeOutline } from "react-icons/io5";
-import { ToastContainer } from "react-toastify";
+import { ToastContainer, toast } from "react-toastify";
 import { Button, Form, Input, Modal, Select, Upload, UploadProps } from "antd";
-import { GetGamesListAPi } from "../../../../services/ApiServices";
+import { CreateUserListAPi, GetGamesListAPi } from "../../../../services/ApiServices";
 import UploadAndViewVariationForm from "./UploadAndViewVariationForm";
 import { PlusOutlined } from "@ant-design/icons";
+import { Config } from "../../../../services/Config";
 
 type FileType = Parameters<NonNullable<UploadProps["beforeUpload"]>>[0];
 
@@ -79,7 +80,6 @@ const defaultGameOverview: gameOverview = {
         correctAnswer: ""
       }
       ],
-
     img2: "",
     img6: "",
     img12: "",
@@ -106,6 +106,7 @@ function ActiveVariation() {
     mobileBanner: [],
     productImage: [],
     img2: [],
+    additionalDetails: {}
   });
   const [previewVisible, setPreviewVisible] = useState(false);
   const [previewImage, setPreviewImage] = useState<string | undefined>(
@@ -217,6 +218,12 @@ function ActiveVariation() {
         ...prevFileLists,
         [imageType]: fileList,
       }));
+      setOpenedGame((prevValue) => ({
+        ...prevValue,
+        [imageType]: fileList[0].response,
+      }));
+
+      
     };
 
   const getBase64 = (file: FileType): Promise<string> =>
@@ -240,6 +247,20 @@ function ActiveVariation() {
   const handleCancelGameDetailsUpdates = useCallback(() => {
     setOpenedGame(defaultGameOverview);
   }, []);
+
+  const handleCreateVariation = async() => {
+    try {
+      await CreateUserListAPi(openedGame);
+      toast.success("User created successfully!");
+      // setModalOpen(false);
+      // fetchUserList();
+    } catch (error) {
+      console.error("Error creating new user:", error);
+      toast.error("Error creating new user.");
+    }
+  }
+
+  console.log('opengame', openedGame)
 
   return (
     <div> 
@@ -330,7 +351,7 @@ function ActiveVariation() {
           ) : (
             <div className="w-full">
               <div className="flex direction-row justify-end gap-4 items-center mb-4">
-                <Button className="text-sm bg-black text-white font-bold hover:bg-blue-700 px-4 rounded-md">
+                <Button onClick={handleCreateVariation} className="text-sm bg-black text-white font-bold hover:bg-blue-700 px-4 rounded-md">
                   Save
                 </Button>
 
@@ -371,10 +392,10 @@ function ActiveVariation() {
                   <div className="flex justify-between">
                     <h3>Add Site Banner (1280 px by 150 px)</h3>
                     <Upload
-                      action="/api/upload"
+                      action={`${Config.BASE_API_URL}/upload/info`}
                       listType="picture-card"
                       fileList={fileLists.siteBanner}
-                      onChange={handleChange("siteBanner")}
+                      onChange={(e) => handleChange("siteBanner")(e)}
                       onPreview={handlePreviewImage}
                     >
                       {fileLists.siteBanner.length < 1 && (
@@ -390,7 +411,7 @@ function ActiveVariation() {
                     <h3>Add Product Image</h3>
 
                     <Upload
-                      action="/api/upload"
+                      action={`${Config.BASE_API_URL}/upload/info`}
                       listType="picture-card"
                       fileList={fileLists.mobileBanner}
                       onChange={handleChange("mobileBanner")}
@@ -407,7 +428,7 @@ function ActiveVariation() {
                   <div className="flex justify-between">
                     <h3>Add Mobile Banner (375 px by 181 px)</h3>
                     <Upload
-                      action="/api/upload"
+                      action={`${Config.BASE_API_URL}/upload/info`}
                       listType="picture-card"
                       fileList={fileLists.productImage}
                       onChange={handleChange("productImage")}
@@ -427,6 +448,10 @@ function ActiveVariation() {
                   <UploadAndViewVariationForm
                     openedGame={openedGame}
                     toggleForm={togleForm}
+                    fileLists={fileLists}
+                    setFileLists={setFileLists}
+                    setOpenedGame={setOpenedGame}
+                    onChangeHandler={handleChange}
                   />
                 </div>
               </div>

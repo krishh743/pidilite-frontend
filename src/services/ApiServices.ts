@@ -16,6 +16,7 @@ export const GetUserListAPi = async (): Promise<any> => {
 export const CreateUserListAPi = async (data:any): Promise<any> => {
 
   const response = await apiClient.post(`${Endpoints.getUserList}`,data);
+  console.log('create vartiation  res ->', response)
   return response;
 };
 
@@ -24,6 +25,12 @@ export const DeleteUserListAPi = async (id:any): Promise<any> => {
   const response = await apiClient.delete(`${Endpoints.getUserList}/${id}`,);
   return response;
 }
+
+export const CreateVariation = async (data:any): Promise<any> => {
+
+  const response = await apiClient.post(`${Endpoints.createVariation}`,data);
+  return response;
+};
 
 export const GetGamesListAPi = async (): Promise<any> => {
 

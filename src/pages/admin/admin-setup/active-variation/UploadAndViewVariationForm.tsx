@@ -31,6 +31,10 @@ const getBase64 = (file: FileType): Promise<string> =>
 interface UploadAndViewVariationFormProps {
   openedGame: any;
   toggleForm: string;
+  fileLists: string[] | any;
+  onChangeHandler: any;
+  setFileLists: any;
+  setOpenedGame: any;
 }
 
 interface ImageUploadProps {
@@ -59,13 +63,13 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
     <div className="flex flex-row gap-10 items-center justify-between">
       <b className="text-md">{label}</b>
       <Upload
-        action={`${Config.BASE_API_URL}/upload`}
+        action={`${Config.BASE_API_URL}/upload/info`}
         listType="picture-card"
         fileList={fileList}
         onPreview={handlePreview}
         onChange={handleChange}
         headers={{
-          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          Authorization: `${localStorage.getItem("token")}`,
         }}
       >
         {fileList.length >= 1 ? null : uploadButton}
@@ -77,28 +81,31 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
 const UploadAndViewVariationForm: React.FC<UploadAndViewVariationFormProps> = ({
   openedGame,
   toggleForm,
+  fileLists,
+  setFileLists,
+  setOpenedGame,
 }) => {
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewImage, setPreviewImage] = useState("");
-  const [fileLists, setFileLists] = useState<{ [key: string]: UploadFile[] }>({
-    backgroundImage: [],
-    trainerBackgroundImage: [],
-    playerBackgroundImage: [],
-    img2: [],
-    img6: [],
-    img12: [],
-    img16: [],
-    img21: [],
-    img25: [],
-    img28: [],
-    img33: [],
-    img38: [],
-    img41: [],
-    img45: [],
-    img48: [],
-    img51: [],
-    img58: [],
-  });
+  // const [fileLists, setFileLists] = useState<{ [key: string]: UploadFile[] }>({
+  //   backgroundImage: [],
+  //   trainerBackgroundImage: [],
+  //   playerBackgroundImage: [],
+  //   img2: [],
+  //   img6: [],
+  //   img12: [],
+  //   img16: [],
+  //   img21: [],
+  //   img25: [],
+  //   img28: [],
+  //   img33: [],
+  //   img38: [],
+  //   img41: [],
+  //   img45: [],
+  //   img48: [],
+  //   img51: [],
+  //   img58: [],
+  // });
 
   const [questions, setQuestions] = useState<Question[]>([
     {
@@ -132,7 +139,7 @@ console.log(openedGame,"opened")
         initialFileLists[key] = [];
       }
     });
-    setFileLists(initialFileLists);
+    // setFileLists(initialFileLists);
   }, [openedGame]);
 
   const handlePreviewImage = async (file: UploadFile) => {
@@ -149,9 +156,23 @@ console.log(openedGame,"opened")
   const handleChange =
     (imageType: string): UploadProps["onChange"] =>
     ({ fileList: newFileList }) => {
-      setFileLists((prevFileLists) => ({
+
+      console.log('imageTYPE - newFileLIst', imageType, newFileList)
+      setFileLists((prevFileLists: any) => ({
         ...prevFileLists,
-        [imageType]: newFileList,
+        [imageType]: newFileList
+        // additionalDetails: {
+        //   ...prevFileLists.additionalDetails, 
+        //   [imageType]: newFileList
+        // }
+      }));
+
+      setOpenedGame((prevValue: any) => ({
+        ...prevValue,
+        additionalDetails: {
+          ...prevValue.additionalDetails, 
+          [imageType]: newFileList[0].response
+        }
       }));
     };
 
@@ -278,7 +299,7 @@ console.log(openedGame,"opened")
                 label={field.label}
                 imageType={field.imageType}
                 fileList={fileLists[field.imageType] || []}
-                handleChange={handleChange(field.imageType)}
+                handleChange={handleChange(`${[field.imageType]}`)}
                 handlePreview={handlePreviewImage}
               />
             </React.Fragment>
